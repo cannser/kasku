@@ -1,3 +1,10 @@
+
+---
+title: KasKu
+sdk: docker
+app_port: 7860
+---
+
 # KasKu (versi Laravel)
 
 Aplikasi web pencatat pemasukan dan pengeluaran dengan rekap bulanan, dibuat dengan **Laravel 12**.

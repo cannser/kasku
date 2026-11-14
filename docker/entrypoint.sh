@@ -6,8 +6,6 @@ cd /var/www/html
 # Cache konfigurasi dan view (route:cache sengaja tidak dipakai: ada route closure)
 php artisan config:cache
 php artisan view:cache
-# Apache berjalan sebagai www-data: pastikan folder tulis miliknya
-chown -R www-data:www-data storage bootstrap/cache
 
 # Migrasi: hanya MENAMBAH tabel yang belum ada, tidak menghapus data.
 # Dicoba ulang beberapa kali karena database cloud kadang butuh beberapa detik untuk bangun.
