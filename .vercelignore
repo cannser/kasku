@@ -10,6 +10,5 @@ storage/logs
 storage/framework
 *.sql
 *.zip
-
 public/index.php
 public/.htaccess

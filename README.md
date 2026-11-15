@@ -1,10 +1,3 @@
-
----
-title: KasKu
-sdk: docker
-app_port: 7860
----
-
 # KasKu (versi Laravel)
 
 Aplikasi web pencatat pemasukan dan pengeluaran dengan rekap bulanan, dibuat dengan **Laravel 12**.
@@ -69,11 +62,13 @@ php artisan test
 | `LOGIN_MAX_ATTEMPTS`, `LOGIN_WINDOW_SECONDS` | Rate limit login (default 5 / 900 detik) |
 | `REGISTER_MAX_ATTEMPTS`, `REGISTER_WINDOW_SECONDS` | Rate limit registrasi (default 5 / 3600 detik) |
 
-## Deploy ke Render (gratis, Docker) dengan database TiDB
+## Deploy ke Vercel (gratis) dengan database TiDB
 
-Langkah lengkap ada di `CARA-DEPLOY-RENDER.md`. Ringkasnya: `Dockerfile` (Apache + PHP 8.3) membangun image, rahasia
-(`APP_KEY`, kredensial database) hanya diisi sebagai environment variable di dasbor Render, koneksi database memakai TLS
-(`MYSQL_ATTR_SSL_CA`), dan `TRUSTED_PROXIES=*` membuat Laravel membaca HTTPS dan IP klien dari proxy Render dengan benar.
+Langkah lengkap ada di `CARA-DEPLOY-VERCEL.md`. Ringkasnya: Vercel menjalankan PHP lewat runtime `vercel-php`
+(titik masuk `api/index.php`, konfigurasi di `vercel.json`). Filesystem Vercel hanya-baca, jadi cache, view terkompilasi,
+dan log dipindah ke `/tmp` dan `stderr`. Rahasia (`APP_KEY`, kredensial database) hanya diisi sebagai Environment Variables
+di dasbor Vercel, koneksi database memakai TLS (sertifikat CA publik di `certs/`), dan `TRUSTED_PROXIES=*` membuat Laravel
+membaca HTTPS dan IP klien dari proxy Vercel dengan benar.
 
 ## Deploy ke shared hosting (cPanel)
 
@@ -133,7 +128,7 @@ dan `ServerSignature Off` (sebagian hosting melarangnya), lalu aktifkan satu per
 ### Keterbatasan yang diketahui
 - Penguncian per username bisa dipakai untuk membuat target sementara tidak bisa login (trade-off rate limiting).
 - Belum ada verifikasi email dan lupa password mandiri.
-- Di belakang proxy/CDN (Render, Cloudflare), isi `TRUSTED_PROXIES=*` agar IP klien dan deteksi HTTPS benar (diatur di `bootstrap/app.php`).
+- Di belakang proxy/CDN (Vercel, Cloudflare), isi `TRUSTED_PROXIES=*` agar IP klien dan deteksi HTTPS benar (diatur di `bootstrap/app.php`).
 - Batas absolut sesi (selain batas tidak aktif) belum diterapkan.
 
 ## Pengujian otomatis

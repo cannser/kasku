@@ -17,8 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Security headers dipasang global: berlaku di semua respons dari Laravel
         $middleware->append(SecurityHeaders::class);
 
-        // Di belakang reverse proxy (Render): percayai proxy agar HTTPS dan IP klien terbaca benar.
-        // Diaktifkan lewat env TRUSTED_PROXIES=* (di Render saja). Nilai '*' hanya mempercayai
+        // Di belakang reverse proxy (Vercel): percayai proxy agar HTTPS dan IP klien terbaca benar.
+        // Diaktifkan lewat env TRUSTED_PROXIES=* (di Vercel saja; api/index.php mengisinya otomatis). Nilai '*' hanya mempercayai
         // proxy yang langsung terhubung (REMOTE_ADDR), jadi header X-Forwarded-* palsu dari klien diabaikan.
         // Jika env kosong (lokal/XAMPP), tidak ada proxy yang dipercaya.
         $middleware->trustProxies(at: env('TRUSTED_PROXIES') ?: null);
