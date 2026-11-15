@@ -1,0 +1,12 @@
+vendor
+node_modules
+.git
+.env
+.env.*
+tests
+docker
+Dockerfile
+storage/logs
+storage/framework
+*.sql
+*.zip
