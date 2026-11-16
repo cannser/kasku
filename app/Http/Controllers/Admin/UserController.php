@@ -5,17 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Concerns\ReadsQuery;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
-use App\Models\PasswordReset;
 use App\Models\User;
-use App\Support\Format;
 use App\Support\SessionPurge;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * Kelola pengguna: aktifkan/nonaktifkan dan reset password.
- * Admin tidak bisa menonaktifkan/mereset dirinya sendiri. Tidak ada fitur hapus akun.
+ * Kelola pengguna: aktifkan/nonaktifkan akun.
+ * Admin tidak bisa menonaktifkan dirinya sendiri. Tidak ada fitur hapus akun.
  * Semua aksi admin dicatat di activity_logs.
  */
 class UserController extends Controller
@@ -36,10 +34,7 @@ class UserController extends Controller
             ->paginate((int) config('kasku.per_page'))
             ->withQueryString();
 
-        // Permintaan "lupa password" dari halaman login yang belum ditangani
-        $resetRequests = PasswordReset::query()->with('user')->open()->latest()->limit(20)->get();
-
-        return view('admin.users', compact('users', 'q', 'resetRequests'));
+        return view('admin.users', compact('users', 'q'));
     }
 
     public function toggle(Request $request, int $user): RedirectResponse
@@ -64,30 +59,5 @@ class UserController extends Controller
             . ' user #' . $target->id . ' (' . $target->username . ')');
 
         return back()->with('success', 'Akun ' . $target->username . ($new ? ' diaktifkan.' : ' dinonaktifkan.'));
-    }
-
-    public function reset(Request $request, int $user): RedirectResponse
-    {
-        $target = User::findOrFail($user);
-
-        if ((int) $target->id === (int) $request->user()->id) {
-            ActivityLog::record('Admin mencoba mereset passwordnya sendiri lewat halaman pengguna');
-
-            return back()->with('danger', 'Gunakan menu Ganti Password untuk akun Anda sendiri.');
-        }
-
-        $temp = Format::tempPassword(12);
-        $target->forceFill(['password' => $temp])->save();    // di-hash oleh cast
-        SessionPurge::forUser((int) $target->id);             // sesi lama pengguna itu berakhir
-
-        // Permintaan "lupa password" milik akun ini dianggap selesai; tautan emailnya ikut tidak berlaku
-        PasswordReset::where('user_id', $target->id)->where('status', 'pending')
-            ->update(['status' => 'done', 'token_hash' => null, 'handled_at' => now()]);
-
-        // Password sementara TIDAK dicatat di log; hanya ditampilkan sekali ke admin
-        ActivityLog::record('Admin mereset password user #' . $target->id . ' (' . $target->username . ')');
-
-        return back()->with('warning', 'Password sementara untuk ' . $target->username . ': ' . $temp
-            . ' (tampil sekali ini saja; minta pengguna segera menggantinya).');
     }
 }

@@ -35,11 +35,6 @@ class AppServiceProvider extends ServiceProvider
                 ->by($request->ip());
         });
 
-        // Rate limit "lupa password": 5 permintaan per jam per IP (dipakai di routes/web.php: throttle:forgot)
-        RateLimiter::for('forgot', function (Request $request) {
-            return Limit::perHour(5)->by($request->ip());
-        });
-
         // Di Blade: @rupiah($angka) menghasilkan "Rp 25.000" (sudah di-escape)
         Blade::directive('rupiah', function (string $expression): string {
             return "<?php echo e(\\App\\Support\\Format::rupiah({$expression})); ?>";

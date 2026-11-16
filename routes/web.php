@@ -3,11 +3,9 @@
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportController;
@@ -32,17 +30,6 @@ Route::middleware('guest')->group(function () {
     // throttle:register = rate limit registrasi per IP (didefinisikan di AppServiceProvider)
     Route::post('/register', [RegisterController::class, 'store'])
         ->middleware('throttle:register')->name('register.store');
-
-    // Lupa password: permintaan dicatat untuk admin + (jika email aktif) tautan reset lewat email
-    Route::get('/forgot-password', [ForgotPasswordController::class, 'create'])->name('password.forgot');
-    // throttle:forgot = rate limit per IP (didefinisikan di AppServiceProvider)
-    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])
-        ->middleware('throttle:forgot')->name('password.email');
-    // Token acak 64 karakter alfanumerik; pola lain langsung 404
-    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'create'])
-        ->where('token', '[A-Za-z0-9]{64}')->name('password.reset');
-    Route::post('/reset-password', [ResetPasswordController::class, 'store'])
-        ->middleware('throttle:10,1')->name('password.store');
 });
 
 // ---- Sudah login: 'auth' (wajib login) + 'active' (akun harus aktif) ----
@@ -87,8 +74,6 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/users', [UserController::class, 'index'])->name('users');
         Route::post('/users/{user}/toggle', [UserController::class, 'toggle'])
             ->whereNumber('user')->name('users.toggle');
-        Route::post('/users/{user}/reset', [UserController::class, 'reset'])
-            ->whereNumber('user')->name('users.reset');
         Route::get('/logs', [LogController::class, 'index'])->name('logs');
     });
 });

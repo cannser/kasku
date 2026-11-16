@@ -143,7 +143,7 @@ class SecurityTest extends TestCase
         $this->actingAs($user)->get('/admin')->assertForbidden();
         $this->actingAs($user)->get('/admin/users')->assertForbidden();
         $this->actingAs($user)->get('/admin/logs')->assertForbidden();
-        $this->actingAs($user)->post('/admin/users/' . $user->id . '/reset')->assertForbidden();
+        $this->actingAs($user)->post('/admin/users/' . $user->id . '/toggle')->assertForbidden();
     }
 
     public function test_admin_can_open_admin_pages(): void
@@ -233,24 +233,12 @@ class SecurityTest extends TestCase
         $admin = $this->makeUser('boss', 'admin');
         $user  = $this->makeUser('alice');
 
-        $this->actingAs($admin)->post('/admin/users/' . $user->id . '/reset');
+        $this->actingAs($admin)->post('/admin/users/' . $user->id . '/toggle');
 
         $this->assertDatabaseHas('activity_logs', [
             'user_id' => $admin->id,
-            'action'  => 'Admin mereset password user #' . $user->id . ' (alice)',
+            'action'  => 'Admin menonaktifkan user #' . $user->id . ' (alice)',
         ]);
-    }
-
-    public function test_admin_reset_password_makes_old_password_invalid(): void
-    {
-        $admin = $this->makeUser('boss', 'admin');
-        $user  = $this->makeUser('alice');
-
-        $this->actingAs($admin)->post('/admin/users/' . $user->id . '/reset');
-        $this->post('/logout');
-
-        $this->post('/login', ['username' => 'alice', 'password' => self::PASSWORD])
-            ->assertSessionHasErrors('username');
     }
 
     // ---------- Input dan output ----------

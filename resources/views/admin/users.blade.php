@@ -5,48 +5,9 @@
 <div class="page-head">
     <div>
         <h1 class="page-title">Kelola pengguna</h1>
-        <p class="page-sub">Aktifkan, nonaktifkan, atau reset password akun.</p>
+        <p class="page-sub">Aktifkan atau nonaktifkan akun.</p>
     </div>
 </div>
-
-@if ($resetRequests->isNotEmpty())
-<div class="panel reset-requests">
-    <div class="panel-head">
-        <h2 class="panel-title">Permintaan reset password ({{ $resetRequests->count() }})</h2>
-    </div>
-    <div class="scroll-x">
-        <table class="dtable">
-            <thead>
-                <tr><th>Username</th><th>Email</th><th>Diminta</th><th>IP</th><th class="t-right">Aksi</th></tr>
-            </thead>
-            <tbody>
-            @foreach ($resetRequests as $r)
-                @continue(! $r->user)
-                <tr>
-                    <td>{{ $r->user->username }}</td>
-                    <td>{{ $r->user->email }}</td>
-                    <td class="nowrap">{{ $r->created_at?->format('d-m-Y H:i') }}</td>
-                    <td class="nowrap">{{ $r->requested_ip }}</td>
-                    <td>
-                        @if ((int) $r->user_id !== (int) auth()->id())
-                            <div class="row-actions">
-                                <form method="post" action="{{ route('admin.users.reset', $r->user_id) }}"
-                                      data-confirm="Reset password akun {{ $r->user->username }}? Pastikan pemintanya benar-benar pemilik akun.">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-warn-soft">Reset sekarang</button>
-                                </form>
-                            </div>
-                        @else
-                            <div class="row-actions"><span class="text-muted small">-</span></div>
-                        @endif
-                    </td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
-    </div>
-</div>
-@endif
 
 <form method="get" action="{{ route('admin.users') }}" class="searchbar" role="search">
     <input type="search" class="form-control" name="q" value="{{ $q }}" maxlength="50"
@@ -91,11 +52,6 @@
                                     <button type="submit" class="btn btn-sm {{ $u->is_active ? 'btn-danger-soft' : 'btn-ok-soft' }}">
                                         {{ $u->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
-                                </form>
-                                <form method="post" action="{{ route('admin.users.reset', $u->id) }}"
-                                      data-confirm="Reset password akun {{ $u->username }}? Password lama tidak berlaku lagi.">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-warn-soft">Reset password</button>
                                 </form>
                             </div>
                         @else
