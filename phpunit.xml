@@ -17,17 +17,29 @@
             <directory>app</directory>
         </include>
     </source>
+    <!--
+      PENTING: semua nilai di bawah MENIMPA file .env selama tes berjalan.
+      Tes memakai SQLite di memori, jadi database sungguhan (TiDB/XAMPP) TIDAK PERNAH tersentuh.
+      RefreshDatabase menjalankan migrate:fresh yang menghapus semua tabel pada koneksi yang aktif,
+      jadi jangan pernah mengganti DB_CONNECTION di sini ke database sungguhan.
+    -->
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_DEBUG" value="false"/>
+        <env name="APP_URL" value="http://localhost"/>
+        <env name="APP_KEY" value="base64:unjTjYFJZR62Yt9goDA8zrchajVqpEdAkn0N27vU/as="/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
-        <!-- <env name="DB_CONNECTION" value="sqlite"/> -->
-        <!-- <env name="DB_DATABASE" value=":memory:"/> -->
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
         <env name="MAIL_MAILER" value="array"/>
-        <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <env name="SESSION_SECURE_COOKIE" value="false"/>
+        <env name="TRUSTED_PROXIES" value=""/>
+        <env name="MYSQL_ATTR_SSL_CA" value=""/>
+        <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
     </php>
 </phpunit>

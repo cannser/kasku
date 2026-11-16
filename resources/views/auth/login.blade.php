@@ -19,6 +19,7 @@
                 @include('partials.password-field', [
                     'id' => 'password', 'name' => 'password', 'label' => 'Password', 'autocomplete' => 'current-password',
                 ])
+                <a class="auth-forgot" href="{{ route('password.forgot') }}">Lupa password?</a>
                 <button type="submit" class="btn btn-primary w-100">Masuk</button>
             </form>
             <p class="auth-switch">Belum punya akun? <a href="{{ route('register') }}">Daftar</a></p>

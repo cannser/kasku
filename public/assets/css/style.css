@@ -617,6 +617,9 @@ dialog.confirm::backdrop { background: rgba(15, 27, 61, 0.55); }
 .auth-title { margin: 0 0 4px; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
 .auth-sub { margin: 0 0 24px; color: var(--muted); }
 .auth-switch { margin: 22px 0 0; text-align: center; color: var(--muted); }
+.auth-forgot { justify-self: end; margin-top: -10px; font-size: 0.9rem; }
+.reset-requests { margin-bottom: 24px; }
+.reset-requests .scroll-x { margin-top: 12px; }
 .auth-foot { padding: 0 20px 28px; text-align: center; color: var(--muted); font-size: 0.85rem; }
 @media (max-width: 575.98px) {
     .auth-panel { align-items: start; padding: 24px 16px; }

@@ -49,6 +49,7 @@ return [
 
     'attributes' => [
         'username'         => 'Username',
+        'identifier'       => 'Username atau email',
         'email'            => 'Email',
         'password'         => 'Password',
         'current_password' => 'Password saat ini',

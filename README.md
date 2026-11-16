@@ -14,7 +14,7 @@ Dibuat sebagai Tugas Project mata kuliah **Cyber Security** (Teknik Informatika,
 dashboard (saldo, pemasukan dan pengeluaran bulan ini, grafik per kategori); laporan per bulan dengan ekspor PDF dan CSV.
 
 **Admin** (dibuat lewat seeder, bukan registrasi): dashboard statistik agregat, kelola pengguna
-(aktifkan/nonaktifkan, reset password), log aktivitas. Admin **tidak dapat melihat isi transaksi** pengguna.
+(aktifkan/nonaktifkan, reset password, daftar permintaan "lupa password"), log aktivitas. Admin **tidak dapat melihat isi transaksi** pengguna.
 
 ## Teknologi
 
@@ -117,6 +117,7 @@ dan `ServerSignature Off` (sebagian hosting melarangnya), lalu aktifkan satu per
 | CSV injection | Sel berawalan `= + - @` diberi awalan `'` | `Format::csvSafe` |
 | Injeksi isi PDF dan SSRF | PDF dibuat langsung oleh kode PHP (tanpa konverter HTML ke PDF, tanpa akses jaringan/berkas); teks pengguna di-escape `( ) \` | `PdfDocument::escape`, `ReportPdf` |
 | Ekspor hanya data sendiri | Query ekspor memakai relasi `$user->transactions()`; format dibatasi daftar putih `pdf`/`csv` | `ReportController::export` |
+| Lupa password | Respons sama untuk akun ada/tidak ada; batas 5 permintaan/jam per IP dan 3/jam per akun; token acak 64 karakter (hanya hash SHA-256 disimpan), berlaku 60 menit, sekali pakai (transaksi + kunci baris); tautan dibuat dari `APP_URL`, bukan header Host; permintaan juga tampil untuk admin | `ForgotPasswordController`, `ResetPasswordController`, `PasswordReset` |
 | Log aktivitas | Login berhasil/gagal, perubahan data, aksi admin (tanpa password) | `ActivityLog` |
 
 ### Perbedaan dengan versi PHP native
@@ -127,7 +128,10 @@ dan `ServerSignature Off` (sebagian hosting melarangnya), lalu aktifkan satu per
 
 ### Keterbatasan yang diketahui
 - Penguncian per username bisa dipakai untuk membuat target sementara tidak bisa login (trade-off rate limiting).
-- Belum ada verifikasi email dan lupa password mandiri.
+- Belum ada verifikasi email saat registrasi.
+- "Lupa password": tautan lewat email hanya aktif jika SMTP dikonfigurasi (`MAIL_MAILER` bukan `log`). Tanpa itu, permintaan
+  ditangani admin secara manual dan verifikasi pemilik akun dilakukan admin di luar aplikasi. Admin belum memaksa pengguna
+  mengganti password sementara saat login pertama.
 - Di belakang proxy/CDN (Vercel, Cloudflare), isi `TRUSTED_PROXIES=*` agar IP klien dan deteksi HTTPS benar (diatur di `bootstrap/app.php`).
 - Batas absolut sesi (selain batas tidak aktif) belum diterapkan.
 
@@ -135,10 +139,15 @@ dan `ServerSignature Off` (sebagian hosting melarangnya), lalu aktifkan satu per
 
 ```bash
 php artisan test --filter=SecurityTest
+php artisan test --filter=PasswordResetTest
 ```
 `tests/Feature/SecurityTest.php` memuat 36 skenario: autentikasi, rate limit, mass assignment, IDOR (lihat/ubah/hapus),
 akses admin, nonaktifkan akun, XSS, SQL injection pada filter, CSRF (419), CSV injection, ekspor PDF/CSV, security headers, validasi input,
 halaman galat yang tidak membocorkan detail, dan kepatuhan CSP (tanpa inline script/style di semua halaman).
+
+`tests/Feature/PasswordResetTest.php` memuat 11 skenario fitur "Lupa password": tautan di halaman login, respons identik untuk akun ada/tidak ada
+(anti user enumeration), token tersimpan sebagai hash, akun nonaktif tidak diproses, email hanya terkirim bila SMTP aktif, tautan memakai `APP_URL`,
+alur reset penuh dan token sekali pakai, token kedaluwarsa/tidak valid, batas per akun dan per IP, serta tampilan permintaan di halaman admin.
 
 ## Penggunaan AI agent
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Concerns\ReadsQuery;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\PasswordReset;
 use App\Models\User;
 use App\Support\Format;
 use App\Support\SessionPurge;
@@ -35,7 +36,10 @@ class UserController extends Controller
             ->paginate((int) config('kasku.per_page'))
             ->withQueryString();
 
-        return view('admin.users', compact('users', 'q'));
+        // Permintaan "lupa password" dari halaman login yang belum ditangani
+        $resetRequests = PasswordReset::query()->with('user')->open()->latest()->limit(20)->get();
+
+        return view('admin.users', compact('users', 'q', 'resetRequests'));
     }
 
     public function toggle(Request $request, int $user): RedirectResponse
@@ -75,6 +79,10 @@ class UserController extends Controller
         $temp = Format::tempPassword(12);
         $target->forceFill(['password' => $temp])->save();    // di-hash oleh cast
         SessionPurge::forUser((int) $target->id);             // sesi lama pengguna itu berakhir
+
+        // Permintaan "lupa password" milik akun ini dianggap selesai; tautan emailnya ikut tidak berlaku
+        PasswordReset::where('user_id', $target->id)->where('status', 'pending')
+            ->update(['status' => 'done', 'token_hash' => null, 'handled_at' => now()]);
 
         // Password sementara TIDAK dicatat di log; hanya ditampilkan sekali ke admin
         ActivityLog::record('Admin mereset password user #' . $target->id . ' (' . $target->username . ')');
