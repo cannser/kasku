@@ -3,10 +3,10 @@
 Aplikasi web pencatat pemasukan dan pengeluaran dengan rekap bulanan, dibuat dengan **Laravel 12**.
 Dibuat sebagai Tugas Project mata kuliah **Cyber Security** (Teknik Informatika, Universitas Kuningan).
 
-> Aplikasi ini untuk keperluan tugas. Gunakan **data dummy**, jangan memasukkan data keuangan atau pribadi yang sebenarnya.
+> Aplikasi ini untuk keperluan tugas. Gunakan **data contoh**, jangan memasukkan data keuangan atau pribadi yang sebenarnya.
 
-- **URL aplikasi:** `https://ISI-DENGAN-URL-APLIKASI-ANDA`
-- **Repository:** `https://github.com/ISI-DENGAN-REPO-ANDA`
+- **URL aplikasi:** https://kaskuku.vercel.app (cadangan: https://kasku-six.vercel.app)
+- **Repository:** https://github.com/cannser/kasku
 
 ## Fitur
 
@@ -18,7 +18,7 @@ dashboard (saldo, pemasukan dan pengeluaran bulan ini, grafik per kategori); lap
 
 ## Teknologi
 
-Laravel 12 (PHP 8.2+), MySQL/MariaDB, Blade, Bootstrap 5 (hanya CSS, CDN dengan SRI), Chart.js (CDN dengan SRI).
+Laravel 12 (PHP 8.2+; di Vercel PHP 8.3), MySQL/MariaDB (di production: TiDB Cloud), Blade, Bootstrap 5 (hanya CSS, CDN dengan SRI), Chart.js (CDN dengan SRI).
 Tanpa paket tambahan di luar Laravel: tidak memakai Breeze, Jetstream, atau Vite/Node.
 
 ## Tampilan (UI/UX)
@@ -36,7 +36,7 @@ Tema "buku kas": tinta navy, biru kobalt untuk aksi, kunyit/saffron sebagai akse
 
 ## Instalasi lokal
 
-Lihat `CARA-PASANG.md` (XAMPP). Ringkasnya:
+Untuk XAMPP (PHP 8.2+, Composer):
 
 ```bash
 composer create-project laravel/laravel:^12.0 kasku-laravel
@@ -64,7 +64,7 @@ php artisan test
 
 ## Deploy ke Vercel (gratis) dengan database TiDB
 
-Langkah lengkap ada di `CARA-DEPLOY-VERCEL.md`. Ringkasnya: Vercel menjalankan PHP lewat runtime `vercel-php`
+Ringkasnya: Vercel menjalankan PHP lewat runtime `vercel-php`
 (titik masuk `api/index.php`, konfigurasi di `vercel.json`). Filesystem Vercel hanya-baca, jadi cache, view terkompilasi,
 dan log dipindah ke `/tmp` dan `stderr`. Rahasia (`APP_KEY`, kredensial database) hanya diisi sebagai Environment Variables
 di dasbor Vercel, koneksi database memakai TLS (sertifikat CA publik di `certs/`), dan `TRUSTED_PROXIES=*` membuat Laravel
@@ -137,35 +137,39 @@ dan `ServerSignature Off` (sebagian hosting melarangnya), lalu aktifkan satu per
 ```bash
 php artisan test --filter=SecurityTest
 ```
-`tests/Feature/SecurityTest.php` memuat 35 skenario: autentikasi, rate limit, mass assignment, IDOR (lihat/ubah/hapus),
+`tests/Feature/SecurityTest.php` memuat 35 skenario (total 37 tes, 176 assertion, semuanya lolos): autentikasi, rate limit, mass assignment, IDOR (lihat/ubah/hapus),
 akses admin, nonaktifkan akun, XSS, SQL injection pada filter, CSRF (419), CSV injection, ekspor PDF/CSV, security headers, validasi input,
 halaman galat yang tidak membocorkan detail, dan kepatuhan CSP (tanpa inline script/style di semua halaman).
 
 ## Penggunaan AI agent
 
-> Lengkapi dengan jujur sesuai ketentuan tugas.
-
 - **Alat AI:** Claude (Anthropic)
-- **Dipakai untuk:** merancang struktur, menulis kode Laravel, migrasi, test, dan dokumentasi.
-- **Contoh prompt utama:** `ISI-DENGAN-PROMPT-ANDA`
-- **Cara meninjau dan memverifikasi:** `ISI-DENGAN-CARA-ANDA` (mis. membaca tiap file, `php artisan test`, uji manual, dan pengujian di hosting).
+- **Dipakai untuk:** merancang struktur aplikasi, menulis kode Laravel (controller, migrasi, view), menyusun tes otomatis, menyusun konfigurasi deploy Vercel dan TiDB Cloud, menelusuri galat, dan menyusun dokumentasi.
+- **Contoh prompt utama (ringkasan):**
+  1. "Buatkan aplikasi web pencatat keuangan bernama KasKu dengan Laravel: registrasi dan login, CRUD transaksi dan kategori, laporan dengan ekspor PDF dan CSV, serta peran admin dan user. Terapkan keamanan: hash password bcrypt, validasi input, perlindungan SQL Injection, XSS, dan CSRF, sesi aman, rate limiting login, kontrol akses berbasis peran, security headers, log aktivitas, dan secret hanya di environment variable."
+  2. "saya ingin menggunakan vercel saja lah" (setelah hosting lain meminta kartu kredit), lalu meminta langkah-langkah deploy dari awal.
+  3. "Buatkan tes keamanan otomatis untuk IDOR, XSS, SQL Injection, CSRF, rate limiting, dan akses admin."
+- **Cara meninjau dan memverifikasi:** membaca dan menjalankan kode pada bagian autentikasi, sesi, dan query database; menjalankan `php artisan test` (37 tes lolos); uji manual di aplikasi live setelah tiap deploy; pemindaian securityheaders.com; `composer audit`; dan pemeriksaan riwayat Git agar tidak ada secret. Tidak ada secret atau data nyata yang dimasukkan ke prompt.
+- **Kesalahan yang ditemukan lewat verifikasi:** konfigurasi tes awal tidak memaksa SQLite sehingga tes sempat berjalan pada database sungguhan. Diperbaiki dengan `phpunit.xml` (SQLite di memori) dan pengaman di `tests/TestCase.php` yang menghentikan tes bila koneksi bukan SQLite memori.
 
 ## Hasil self-testing keamanan
 
-> Lengkapi dengan tangkapan layar / keluaran tools untuk laporan PDF.
+Skenario 1 sampai 7 diuji dengan tes otomatis (`php artisan test`), skenario 8 sampai 10 dengan tools. Bukti lengkap (tangkapan layar) ada di laporan PDF.
 
 | # | Skenario | Cara uji | Hasil | Perbaikan |
 |---|---|---|---|---|
-| 1 | SQL Injection pada login/filter | Payload `' OR '1'='1` | ISI | ISI |
-| 2 | XSS tersimpan | Keterangan `<script>alert(1)</script>` | ISI | ISI |
-| 3 | IDOR transaksi | User A membuka `/transactions/{id milik B}/edit` | ISI | ISI |
-| 4 | Akses admin oleh user biasa | Buka `/admin/users` | ISI | ISI |
-| 5 | CSRF | POST tanpa token (419) | ISI | ISI |
-| 6 | Rate limiting login | 6 kali salah berurutan | ISI | ISI |
-| 7 | Password lemah | Registrasi `abcdefgh` | ISI | ISI |
-| 8 | HTTPS dan header | securityheaders.com / SSL Labs | ISI | ISI |
-| 9 | Secret di repository | `git log -p`, cari `DB_PASSWORD` | ISI | ISI |
-| 10 | Kerentanan dependency | `composer audit` | ISI | ISI |
+| 1 | SQL Injection pada login/filter | Payload `' OR '1'='1` (tes otomatis) | Lolos | Tidak perlu: query ber-parameter (Eloquent) |
+| 2 | XSS tersimpan | Keterangan `<script>alert(1)</script>` (tes otomatis dan uji di aplikasi live) | Lolos, tampil sebagai teks biasa | Tidak perlu: Blade meng-escape output, CSP tanpa inline script |
+| 3 | IDOR transaksi | User A membuka `/transactions/{id milik B}/edit` (tes otomatis) | Lolos, hasil 404 | Tidak perlu: query lewat relasi pemilik |
+| 4 | Akses admin oleh user biasa | Buka `/admin/users` (tes otomatis dan uji di aplikasi live) | Lolos, hasil 403 | Tidak perlu: middleware `role:admin` |
+| 5 | CSRF | POST tanpa token (419) | Lolos | Tidak perlu: middleware CSRF |
+| 6 | Rate limiting login | Login gagal berulang sampai diblokir | Lolos, hasil 429 | Tidak perlu: RateLimiter per IP dan username |
+| 7 | Password lemah | Registrasi `abcdefgh` | Lolos, ditolak | Tidak perlu: aturan huruf dan angka, minimal 8 |
+| 8 | HTTPS dan header | securityheaders.com dan DevTools | Lolos, Grade A+; cookie `HttpOnly`, `Secure`, `SameSite=Lax` | Tidak perlu |
+| 9 | Secret di repository | `git log --all --full-history -- .env`, `git log -p` cari `DB_PASSWORD` | Lolos, `.env` tidak pernah ter-commit | Tidak perlu: `.env` ada di `.gitignore` |
+| 10 | Kerentanan dependency | `composer audit` | Lolos, tidak ada advisori kerentanan | Tidak perlu |
+
+Temuan di luar kode aplikasi yang diperbaiki: tes yang sempat berjalan pada database sungguhan (sebelum: tanpa pengaman; sesudah: SQLite di memori dan pengaman di `TestCase`), dan kredensial database yang sempat terlihat di tangkapan layar (sesudah: password diganti).
 
 ## Akun uji coba
 
